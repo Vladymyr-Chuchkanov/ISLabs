@@ -3,12 +3,16 @@ import random
 
 Groups = [[1,20],[2,30],[3,10],[4,15],[5,13]] #id + Number of students
 SubIds = [1,2,3]
-Subjects = [[1, "Практика"], [2,"Практика"], [3,"Лекція"]]  #id + 1 - lecture, 0 - practice
+Subjects = [[1, "Практика"], [2,"Практика"], [3,"Лекція"]]
 Rooms = [[101,15],[222,25],[300,40],[440,50],[55,17],[6,20]]
 Teachers = ["Перший викладач","Другий викладач","Третій викладач","Четвертий викладач","П'ятий викладач"]
 TIME_START = 9
 TIME_END = 15
 Days = ["ПН","ВТ","СР","ЧТ","ПТ"]
+START_POPULATION_NUMBER = 100
+MUTATION_RATE = 15
+CROSSING_RATE = 90
+MAX_GENERATIONS = 200
 
 SUBJECTS_PER_WEEK = 10
 #Class (list of id) - day, time, group, room, subj, teacher
@@ -45,7 +49,7 @@ def checkFunction(classes):
             elif el[1]== id and teach0>=0:
                 calc+=1
         if calc > 1:
-            problems+=1
+            problems+=calc
 
     return problems
 
@@ -68,7 +72,19 @@ def mutate(el):
     return el2
 
 
-
+def tournament(schedule, fitness):
+    res = []
+    for i in range(START_POPULATION_NUMBER):
+        i1,i2,i3 = 0,0,0
+        while i1 == i2 or i2==i3 or i1==i2:
+            i1, i2, i3 = random.randint(0, START_POPULATION_NUMBER-1), random.randint(0,START_POPULATION_NUMBER-1), random.randint(0, START_POPULATION_NUMBER-1)
+        if fitness[i1]<=fitness[i2] and fitness[i1]<=fitness[i3]:
+            res.append(copy.deepcopy(schedule[i1]))
+        elif  fitness[i2]<=fitness[i1] and fitness[i2]<=fitness[i3]:
+            res.append(copy.deepcopy(schedule[i2]))
+        elif  fitness[i3]<=fitness[i1] and fitness[i3]<=fitness[i2]:
+            res.append(copy.deepcopy(schedule[i3]))
+    return res
 
 
 def generate_start(Start_Number):
@@ -86,10 +102,7 @@ def generate_start(Start_Number):
         res.append(copy.deepcopy(res0))
     return res
 
-START_POPULATION_NUMBER = 100
-MUTATION_RATE = 10
-CROSSING_RATE = 90
-MAX_GENERATIONS = 50
+
 if __name__ == "__main__":
     schedule = generate_start(START_POPULATION_NUMBER)
     min_fintess = 10000
@@ -111,7 +124,7 @@ if __name__ == "__main__":
 
         if min(fitness)==0:
             break
-        random.shuffle(schedule)
+        schedule = tournament(schedule,fitness)
         after_cross = []
         for el1,el2 in zip(schedule[::2],schedule[1::2]):
             if random.randint(0,100) < CROSSING_RATE:
